@@ -1,0 +1,15 @@
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: serverlessopsio-site-redirect
+  description: ServerlessOps.io Site Redirect
+  annotations:
+    github.com/project-slug: ServerlessOpsIO/serverlessopsio-site-redirect
+spec:
+  type: api
+  lifecycle: production
+  owner: group:admins
+  system: Website
+  providesApis:
+    - resource:serverlessops-catalog-api

@@ -1,0 +1,41 @@
+---
+openapi: 3.0.3
+info:
+  title: serverlessops-catalog-api API
+  description: ServerlessOps.io Site redirect
+  version: 1.0.0
+servers:
+  - url:
+      Fn::Sub: "https://${Hostname}"
+    description: Production endpoint
+
+paths:
+  "/{proxy+}":
+    x-amazon-apigateway-any-method:
+      summary: Redirect all requests
+      description: Redirects all requests to https://www.serverlessops.io
+      responses:
+        '302':
+          description: Redirect
+          headers:
+            Location:
+              description: Redirect location
+              schema:
+                type: string
+        default:
+          description: Default response
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |
+            {
+              "statusCode": 302,
+              "headers": {
+                "Location": "https://www.serverlessops.io${context.path}${context.requestOverride.path}"
+              }
+            }
+        responses:
+          default:
+            statusCode: 302
+            responseTemplates:
+              application/json: "{}"

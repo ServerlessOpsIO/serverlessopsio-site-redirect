@@ -1,0 +1,71 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: ServerlessOps.io Site redirect
+
+Parameters:
+  Domain:
+    Type: String
+    Description: 'Application Platform'
+
+  System:
+    Type: String
+    Description: 'Application System'
+
+  Component:
+    Type: String
+    Description: 'Application Component'
+
+  CodeBranch:
+    Type: String
+    Description: "Name of deployment branch"
+
+  Hostname:
+    Type: String
+    Description: Site FQDN
+
+  DnsZoneId:
+    Type: AWS::SSM::Parameter::Value<String>
+    Description: Route53 Hosted Zone ID
+
+Resources:
+
+  # APIG
+  SiteCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: !Ref Hostname
+      ValidationMethod: DNS
+      DomainValidationOptions:
+        - DomainName: !Ref Hostname
+          HostedZoneId: !Ref DnsZoneId
+
+  RestApiLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/api-gateway/${AWS::StackName}"
+      RetentionInDays: 7
+
+  RestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref CodeBranch
+      Domain:
+        DomainName: !Ref Hostname
+        CertificateArn: !Ref SiteCertificate
+        Route53:
+          HostedZoneId: !Ref DnsZoneId
+        EndpointConfiguration: REGIONAL
+      AccessLogSetting:
+        DestinationArn: !GetAtt RestApiLogGroup.Arn
+        Format: '$context.extendedRequestId $context.identity.sourceIp $context.identity.caller $context.identity.user [$context.requestTime] "$context.httpMethod $context.resourcePath $context.protocol" $context.status $context.responseLength $context.requestId'
+      MethodSettings:
+        - ResourcePath: "/*"
+          HttpMethod: "*"
+          LoggingLevel: INFO
+          MetricsEnabled: true
+          DataTraceEnabled: false
+      DefinitionBody:
+        Fn::Transform:
+          Name: "AWS::Include"
+          Parameters:
+            Location: "openapi.yaml"

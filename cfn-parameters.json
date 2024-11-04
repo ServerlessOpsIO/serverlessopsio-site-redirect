@@ -1,0 +1,8 @@
+{
+    "Domain": "infra",
+    "System": "Website",
+    "Component": $env.GITHUB_REPOSITORY_NAME_PART_SLUG_CS,
+    "CodeBranch": $env.GITHUB_REF_SLUG_CS,
+	"Hostname": "serverlessops.io",
+	"DnsZoneId": "/org/dns/RootZoneId"
+}
