@@ -1,7 +1,7 @@
 ---
 openapi: 3.0.3
 info:
-  title: serverlessops-catalog-api API
+  title: serverlessopsio-site-redirect
   description: ServerlessOps.io Site redirect
   version: 1.0.0
 servers:
