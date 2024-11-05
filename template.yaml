@@ -23,6 +23,10 @@ Parameters:
     Type: String
     Description: Site FQDN
 
+  AltHostname:
+    Type: CommaDelimitedList
+    Description: Alternate Site FQDN
+
   DnsZoneId:
     Type: AWS::SSM::Parameter::Value<String>
     Description: Route53 Hosted Zone ID
@@ -34,6 +38,7 @@ Resources:
     Type: AWS::CertificateManager::Certificate
     Properties:
       DomainName: !Ref Hostname
+      SubjectAlternativeNames: !Ref AltHostname
       ValidationMethod: DNS
       DomainValidationOptions:
         - DomainName: !Ref Hostname
