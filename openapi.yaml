@@ -10,32 +10,53 @@ servers:
     description: Production endpoint
 
 paths:
-  "/{proxy+}":
-    x-amazon-apigateway-any-method:
-      summary: Redirect all requests
-      description: Redirects all requests to https://www.serverlessops.io
+  "/health":
+    get:
+      summary: Health check
+      description: Get health of endpoint
+      parameters:
+        - $ref: "#/components/parameters/headerContentTypeJson"
       responses:
-        '302':
-          description: Redirect
-          headers:
-            Location:
-              description: Redirect location
+        '200':
+          description: Success
+          content:
+            application/json:
               schema:
-                type: string
-        default:
-          description: Default response
+                $ref: "#/components/schemas/HealthCheckResponse"
+      security:
+        - serverlessOpsCognitoPool:
+          - Fn::Sub: https://${Hostname}/health.read
       x-amazon-apigateway-integration:
         type: mock
         requestTemplates:
-          application/json: |
+          "application/json": |
             {
-              "statusCode": 302,
-              "headers": {
-                "Location": "https://www.serverlessops.io${context.path}${context.requestOverride.path}"
-              }
+              "statusCode": 200
             }
         responses:
-          default:
-            statusCode: 302
+          "200":
+            statusCode: 200
             responseTemplates:
-              application/json: "{}"
+              "application/json": |
+                {
+                  "healthy": true
+                }
+
+components:
+  schemas:
+    HealthCheckResponse:
+      type: object
+      properties:
+        healthy:
+          type: boolean
+      required:
+        - healthy
+  parameters:
+    headerContentTypeJson:
+      name: Content-Type
+      in: header
+      required: true
+      schema:
+        type: string
+        enum:
+          - application/json
