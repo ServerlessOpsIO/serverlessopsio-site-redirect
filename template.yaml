@@ -23,10 +23,6 @@ Parameters:
     Type: String
     Description: Site FQDN
 
-  AltHostname:
-    Type: String
-    Description: Alternate Site FQDN
-
   RedirectHostname:
     Type: String
     Description: Redirect site hostname
@@ -79,8 +75,6 @@ Resources:
     Type: AWS::CertificateManager::Certificate
     Properties:
       DomainName: !Ref Hostname
-      SubjectAlternativeNames:
-        - !Ref AltHostname
       ValidationMethod: DNS
       DomainValidationOptions:
         - DomainName: !Ref Hostname
@@ -92,16 +86,6 @@ Resources:
       LogGroupName: !Sub "/aws/api-gateway/${AWS::StackName}"
       RetentionInDays: 7
 
-  ApexRecord:
-    Type: AWS::Route53::RecordSet
-    Properties:
-      HostedZoneId: !Ref DnsZoneId
-      Name: !Ref AltHostname
-      Type: A
-      AliasTarget:
-        DNSName: !Ref Hostname
-        HostedZoneId: !Ref DnsZoneId
-
   RestApi:
     Type: AWS::Serverless::Api
     Properties:
@@ -111,7 +95,7 @@ Resources:
         CertificateArn: !Ref SiteCertificate
         Route53:
           HostedZoneId: !Ref DnsZoneId
-        EndpointConfiguration: REGIONAL
+        EndpointConfiguration: EDGE
       AccessLogSetting:
         DestinationArn: !GetAtt RestApiLogGroup.Arn
         Format: '$context.extendedRequestId $context.identity.sourceIp $context.identity.caller $context.identity.user [$context.requestTime] "$context.httpMethod $context.resourcePath $context.protocol" $context.status $context.responseLength $context.requestId'
