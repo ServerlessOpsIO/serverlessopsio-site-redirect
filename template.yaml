@@ -24,7 +24,7 @@ Parameters:
     Description: Site FQDN
 
   AltHostname:
-    Type: CommaDelimitedList
+    Type: String
     Description: Alternate Site FQDN
 
   DnsZoneId:
@@ -38,7 +38,8 @@ Resources:
     Type: AWS::CertificateManager::Certificate
     Properties:
       DomainName: !Ref Hostname
-      SubjectAlternativeNames: !Ref AltHostname
+      SubjectAlternativeNames:
+        - !Ref AltHostname
       ValidationMethod: DNS
       DomainValidationOptions:
         - DomainName: !Ref Hostname
@@ -49,6 +50,16 @@ Resources:
     Properties:
       LogGroupName: !Sub "/aws/api-gateway/${AWS::StackName}"
       RetentionInDays: 7
+
+  ApexRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref DnsZoneId
+      Name: !Ref AltHostname
+      Type: A
+      AliasTarget:
+        DNSName: !Ref Hostname
+        HostedZoneId: !Ref DnsZoneId
 
   RestApi:
     Type: AWS::Serverless::Api
