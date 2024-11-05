@@ -22,6 +22,14 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Install Yarn via corepack
+        shell: bash
+        run: corepack enable
+
+      - name: Install dependencies
+        shell: bash
+        run: yarn install --immutable
+
       - name: Assume AWS Credentials
         uses: ServerlessOpsIO/gha-assume-aws-credentials@v1
         with:
@@ -35,8 +43,11 @@ jobs:
 
       # TODO: Need to run tests when we have them
 
+      - name: Compile Typescript
+        run: yarn run build
+
       - name: Build artifact
-        run: sam build
+        run: yarn run sam:build
 
       - name: Store Artifacts
         uses: ServerlessOpsIO/gha-store-artifacts@v1

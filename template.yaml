@@ -27,11 +27,52 @@ Parameters:
     Type: String
     Description: Alternate Site FQDN
 
+  RedirectHostname:
+    Type: String
+    Description: Redirect site hostname
+
   DnsZoneId:
     Type: AWS::SSM::Parameter::Value<String>
     Description: Route53 Hosted Zone ID
 
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 5
+    MemorySize: 128
+    Environment:
+      Variables:
+        POWERTOOLS_SERVICE_NAME: !Ref AWS::StackName
+
 Resources:
+
+  RedirectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: URL redirect function
+      CodeUri: ./dist/handlers/Redirect
+      Handler: function.handler
+      Environment:
+        Variables:
+          REDIRECT_HOST: !Sub "https://${RedirectHostname}"
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Format: "esm"
+        MainFields: module,main # This is to help with ESM modules
+        OutExtension:
+          - .js=.mjs
+        EntryPoints:
+          - function.js
+
+  RedirectFunctionnInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt RedirectFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
 
   # APIG
   SiteCertificate:
